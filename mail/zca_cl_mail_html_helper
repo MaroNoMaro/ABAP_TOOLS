@@ -1,0 +1,214 @@
+class zca_cl_mail_html_helper definition
+  public
+  inheriting from zca_cl_mail_text_helper
+  create public .
+
+  "na podstawie -> https://archive.sap.com/kmuuid2/e009f97e-ee5d-2e10-31ba-9c9509e5925c/Step%20by%20Step%20Process%20of%20Preparing%20E-mail%20with%20HTML%20body%20and%20HTML%20Attachment.pdf
+  "https://archive.sap.com/discussions/thread/1355872
+  "https://blogs.sap.com/2013/06/11/image-in-mail-body-in-abap/
+  public section.
+
+    methods set_html_body
+      importing
+        !i_body type soli_tab .
+    methods send_email_image
+      returning
+        value(r_result) type abap_bool
+      raising
+        cx_document_bcs
+        cx_bcom_mime
+        cx_gbt_mime
+        cx_send_req_bcs
+        cx_address_bcs
+        zcx_add_attachement .
+    methods set_mime_body
+      importing
+        !i_mime_body_with_im type ref to cl_gbt_multirelated_service .
+    methods set_attachement
+      importing
+        !i_attachement      type solix_tab
+        !i_attachement_size type i .
+    methods get_attachement_subj
+      returning
+        value(r_result) type sood-objdes .
+    methods set_attachement_subj
+      importing
+        !i_attachement_subj type sood-objdes .
+    methods get_html_body
+      returning
+        value(r_result) type soli_tab .
+    methods send_mail_atta
+      returning
+        value(rv_sent_to_all) type os_boolean .
+
+    methods send_email
+        redefinition .
+  protected section.
+
+    data attachement_size type i .
+  private section.
+
+    data html_body type soli_tab .
+    data mime_body type ref to cl_gbt_multirelated_service .
+    data attachement type solix_tab .
+    data attachement_subj type sood-objdes .
+    methods create_mime_helper
+      returning
+        value(r_mime_obj) type ref to cl_gbt_multirelated_service.
+endclass.
+
+
+
+class zca_cl_mail_html_helper implementation.
+
+
+  method get_attachement_subj.
+    r_result = me->attachement_subj.
+  endmethod.
+
+
+  method get_html_body.
+    r_result = me->html_body.
+  endmethod.
+
+
+  method send_email.
+    data(send_request) = cl_bcs=>create_persistent( ).
+    data(document) = cl_document_bcs=>create_document( i_type = me->c_htm
+                                                       i_importance = '5' "średni priorytet
+                                                       i_text = me->html_body "trzeba ustawic inaczej, bo jest ograniczenie na ilosc znakow
+                                                       i_subject = ''
+                                                        ).
+    send_request->set_document( document ).
+    send_request->set_message_subject( ip_subject = me->get_subject( ) ).
+    if iv_bp_mail eq abap_false.
+      send_request->set_sender( cl_sapuser_bcs=>create( i_user =  me->get_from( ) ) ).
+    else.
+      data(sender)    = cl_cam_address_bcs=>create_internet_address('UC@zabka.pl' ).
+      send_request->set_sender( sender ).
+    endif.
+
+    me->get_t_recipients( importing r_result = data(t_receipients) ).
+    loop at t_receipients into data(ls_receipient).
+      send_request->add_recipient( cl_cam_address_bcs=>create_internet_address( conv #( ls_receipient ) ) ).
+    endloop.
+    r_sent_to_all = send_request->send( i_with_error_screen = 'X' ).
+
+    clear me->html_body.
+  endmethod.
+
+
+  method send_email_image.
+    data(send_request) = cl_bcs=>create_persistent( ).
+    data(mime_helper) = create_mime_helper( ).
+    mime_helper->set_main_html(
+        content = me->html_body
+        description = 'mail_body'
+    ).
+    data(document) = cl_document_bcs=>create_from_multirelated(
+        i_subject = ''
+        i_multirel_service = mime_helper
+    ).
+
+    send_request->set_document( document ).
+    send_request->set_message_subject( ip_subject = me->get_subject( ) ).
+    send_request->set_sender( cl_sapuser_bcs=>create( i_user =  me->get_from( ) ) ).
+    me->get_t_recipients( importing r_result = data(t_receipients) ).
+    loop at t_receipients into data(ls_receipient).
+      send_request->add_recipient( cl_cam_address_bcs=>create_internet_address( conv #( ls_receipient ) ) ).
+    endloop.
+    r_result = send_request->send( i_with_error_screen = 'X' ).
+  endmethod.
+
+
+  method send_mail_atta.
+    data(send_request) = cl_bcs=>create_persistent( ).
+    data(document) = cl_document_bcs=>create_document( i_type = me->c_htm
+                                                       i_importance = '5' "średni priorytet
+                                                       i_text = me->html_body "trzeba ustawic inaczej, bo jest ograniczenie na ilosc znakow
+                                                       i_subject = ''
+                                                        ).
+    send_request->set_document( document ).
+    send_request->set_message_subject( ip_subject = me->get_subject( ) ).
+    send_request->set_sender( cl_sapuser_bcs=>create( i_user =  me->get_from( ) ) ).
+
+    me->get_t_recipients( importing r_result = data(t_receipients) ).
+    loop at t_receipients into data(ls_receipient).
+      send_request->add_recipient( cl_cam_address_bcs=>create_internet_address( conv #( ls_receipient ) ) ).
+    endloop.
+
+    call method document->add_attachment(
+        i_attachment_type    = me->att_type "'PDF'
+        i_attachment_subject = me->att_subject
+        i_att_content_hex    = me->t_attachement
+                               ).
+
+
+    rv_sent_to_all = send_request->send( i_with_error_screen = 'X' ).
+
+  endmethod.
+
+
+  method set_attachement.
+    me->attachement = i_attachement.
+    me->attachement_size = i_attachement_size.
+  endmethod.
+
+
+  method set_attachement_subj.
+    me->attachement_subj = i_attachement_subj.
+  endmethod.
+
+
+  method set_html_body.
+    me->html_body = i_body.
+  endmethod.
+
+
+  method set_mime_body.
+    me->mime_body = i_mime_body_with_im.
+  endmethod.
+
+  method create_mime_helper.
+    data(logo_url) = '/SAP/PUBLIC/LOGO_ZABKA_TRANSPARENT'.
+    data(mime_api) = cl_mime_repository_api=>if_mr_api~get_api( ).
+    mime_api->get( exporting i_url = logo_url
+                        importing e_is_folder = data(is_folder)
+                                    e_content = data(content_xstring)
+                                    e_loio = data(lolo) ).
+    data(obj_len) = xstrlen( content_xstring ).
+    data(graphic_length) = xstrlen( content_xstring ).
+    data(r_xstrl) = content_xstring(obj_len).
+    data(offset) = 0.
+    data(length) = 255.
+    data lt_solix type solix_tab.
+    data ls_solix type solix.
+
+    while offset < graphic_length.
+      data(diff) = graphic_length - offset.
+      if diff > length.
+        ls_solix-line = r_xstrl+offset(length).
+      else.
+        ls_solix-line = r_xstrl+offset(diff).
+      endif.
+      append ls_solix to lt_solix.
+      add length to offset.
+    endwhile.
+
+    data(filename) = 'zabka_logo.gif'.
+    data(content_id) = 'zabka_logo.gif'.
+
+    data(mime_helper) = new cl_gbt_multirelated_service( ).
+    mime_helper->add_binary_part(
+        content = lt_solix
+        filename = conv #( filename )
+        extension = conv #( '.gif' )
+        description = 'Logo'
+        content_type = 'image/gif'
+        length = conv #( obj_len )
+        content_id = conv #( content_id )
+    ).
+    r_mime_obj = mime_helper.
+  endmethod.
+
+endclass.
