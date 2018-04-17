@@ -45,7 +45,7 @@ class ltcl_mail_tester implementation.
   method test_simple_mail.
     data(mail_helper) = new zca_cl_mail_html_helper( ).
     mail_helper->set_from( sy-uname ).
-    mail_helper->add_recipient( 'marek.barcinski@ipopema.pl' ).
+    mail_helper->add_recipient( 'mail@ipopema.pl' ).
     data(simple_body) = me->generate_simple_body( ).
 *    mail_helper->set_body( simple_body ).
 *    mail_helper->set_html_body( simple_body ).
@@ -72,7 +72,7 @@ class ltcl_mail_tester implementation.
     data(mail_helper) = new zca_cl_mail_html_helper( ).
     mail_helper->set_from( sy-uname ).
     mail_helper->set_subject( 'Test maila ze stopką' ).
-    mail_helper->add_recipient( 'marek.barcinski@ipopema.pl' ).
+    mail_helper->add_recipient( 'mail@ipopema.pl' ).
     data(simple_body) = me->generate_body_with_footer( ).
 *    mail_helper->set_body( simple_body ).
     mail_helper->set_html_body( simple_body ).
@@ -136,7 +136,7 @@ class ltcl_mail_tester implementation.
     data(mail_helper) = new zca_cl_mail_html_helper( ).
     mail_helper->set_from( sy-uname ).
     mail_helper->set_subject( 'Test maila ze obrazkiem' ).
-    mail_helper->add_recipient( 'marek.barcinski@ipopema.pl' ).
+    mail_helper->add_recipient( 'mail@ipopema.pl' ).
     data(html_body_with_im) = me->generate_html_body_with_image( ).
     data attachement_size type i.
 *    data(image_attachement) = me_generate_image_attachement( importing attachement_size = attachement_size ).
