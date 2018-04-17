@@ -1,0 +1,232 @@
+*"* use this source file for your ABAP unit test classes
+class ltcl_mail_tester definition final for testing
+  duration short
+  risk level harmless.
+
+  private section.
+    DATA i_zabka_logo_path TYPE string value '/SAP/PUBLIC/LOGO_ZABKA_TRANSPARENT'.
+*  data tested_class type ref to zca_cl_mail_html_helper.
+
+    methods: setup,
+      generate_simple_body
+        returning
+          value(r_result) type soli_tab,
+      generate_body_with_footer
+        returning
+          value(r_result) type soli_tab,
+    generate_html_body_with_image
+      returning
+          value(R_RESULT) type soli_tab,
+    me_generate_image_attachement
+    exporting attachement_size type i
+      returning
+          VALUE(R_RESULT) TYPE solix_tab.
+    methods:
+      first_test for testing raising cx_static_check.
+    methods:
+      test_simple_mail for testing.
+    methods: test_footer for testing.
+    methods: test_image for testing.
+
+
+endclass.
+
+
+class ltcl_mail_tester implementation.
+
+  method first_test.
+*    cl_abap_unit_assert=>fail( 'Implement your first test here' ).
+  endmethod.
+
+  method setup.
+*    tested_class = new zca_cl_mail_html_helper( ).
+  endmethod.
+
+  method test_simple_mail.
+    data(mail_helper) = new zca_cl_mail_html_helper( ).
+    mail_helper->set_from( sy-uname ).
+    mail_helper->add_recipient( 'marek.barcinski@ipopema.pl' ).
+    data(simple_body) = me->generate_simple_body( ).
+*    mail_helper->set_body( simple_body ).
+*    mail_helper->set_html_body( simple_body ).
+*    if sy-sysid = 'S4D' or sy-sysid = 'S4T'.
+*      data(success) = mail_helper->send_email( ).
+*      commit work.
+*    endif.
+
+
+  endmethod.
+
+
+  method generate_simple_body.
+    append '<!DOCTYPE html>' to r_result.
+    append '<html>' to r_result.
+    append '<body>' to r_result.
+    append '<h1>Test</h1>' to r_result.
+    append '<p>Treśc</p>' to r_result.
+    append '</body>' to r_result.
+    append '</html>' to r_result.
+  endmethod.
+
+  method test_footer.
+    data(mail_helper) = new zca_cl_mail_html_helper( ).
+    mail_helper->set_from( sy-uname ).
+    mail_helper->set_subject( 'Test maila ze stopką' ).
+    mail_helper->add_recipient( 'marek.barcinski@ipopema.pl' ).
+    data(simple_body) = me->generate_body_with_footer( ).
+*    mail_helper->set_body( simple_body ).
+    mail_helper->set_html_body( simple_body ).
+*    if sy-sysid = 'S4D' or sy-sysid = 'S4T'.
+*      data(success) = mail_helper->send_email( ).
+*      commit work.
+*    endif.
+  endmethod.
+
+
+  method generate_body_with_footer.
+    append '<!DOCTYPE html>' to r_result.
+    append '<html>' to r_result.
+    append '<head>' to r_result.
+    append '    <meta charset="UTF-8">' to r_result.
+    append '</head>' to r_result.
+    append '<style>' to r_result.
+    append '    .data { white-space: pre;' to r_result.
+    append '            font-family: Arial;' to r_result.
+    append '            font-size: 13px; ' to r_result.
+    append '    }' to r_result.
+    append '    .footer { ' to r_result.
+    append '        font-family: Arial;' to r_result.
+    append '        font-size: 11px;' to r_result.
+    append '    }' to r_result.
+    append '    .line_footer {' to r_result.
+    append '        width:"25%";' to r_result.
+    append '    }' to r_result.
+    append '</style>' to r_result.
+    append '<body>' to r_result.
+    append '<div class="data">' to r_result.
+    append '        Dzień dobry, ' to r_result.
+    append '        Proszę o informację w temacie niedopłaty na Z0002, u Franczyzobiorcy TAURON TEST, asd asd4 01-716 asdasd. Franczyzobiorca prowadzi 1 sklepów. ' to r_result.
+    append '        Analiza płatności w dniu 16/1/2018 wykazuje niedopłatę w kwocie 3000.00 PLN. ' to r_result.
+    append '        Niedopłata w trakcie ostatnich pięciu dni urosła 2 razy. W ostatnich 30 dniach, niedopłata występowała 0 razy. ' to r_result.
+    append '        Proszę o bezzwłoczne zweryfikowanie płatności i zobowiązanie Franczyzobiorcy do uregulowania powstałej różnicy' to r_result.
+    append 'oraz o przesłanie dowodów wpłat zaległej i bieżącej do godziny 13:00.' to r_result.
+    append '</div>' to r_result.
+    append '<div class="footer">' to r_result.
+    append '    <br>' to r_result.
+    append '    <br>' to r_result.
+    append '    <!-- takie mają maile w żabce :) -->' to r_result.
+    append '    <strike>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;' to r_result.
+    append '        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strike>' to r_result.
+    append '    <br>' to r_result.
+    append '    Wiadomość wygenerowana automatycznie' to r_result.
+    append '    <br>' to r_result.
+    append '    <div>' to r_result.
+    append '        <!-- tu będzie obrazek -->' to r_result.
+    append '    </div>' to r_result.
+    append '</div>' to r_result.
+    append '' to r_result.
+    append '' to r_result.
+    append '</body>' to r_result.
+    append '' to r_result.
+    append '</html>' to r_result.
+  endmethod.
+
+  method test_image.
+*  break barcinskim.
+    data(mail_helper) = new zca_cl_mail_html_helper( ).
+    mail_helper->set_from( sy-uname ).
+    mail_helper->set_subject( 'Test maila ze obrazkiem' ).
+    mail_helper->add_recipient( 'marek.barcinski@ipopema.pl' ).
+    data(html_body_with_im) = me->generate_html_body_with_image( ).
+    data attachement_size type i.
+*    data(image_attachement) = me_generate_image_attachement( importing attachement_size = attachement_size ).
+    mail_helper->set_html_body( html_body_with_im ).
+*    mail_helper->set_attachement( i_attachement =  image_attachement i_attachement_size = attachement_size ).
+*    mail_helper->set_attachement_subj( 'zabka_logo' ).
+
+    try.
+      data(success) = mail_helper->send_email_image( ).
+      catch zcx_add_attachement into data(zcx_add_attachement).
+      cl_abap_unit_assert=>fail( 'error while adding attachement' ).
+    endtry.
+
+    if sy-sysid = 'S4D' or sy-sysid = 'S4T'.
+      commit work.
+      else.
+      rollback work.
+    endif.
+  endmethod.
+
+
+  method generate_html_body_with_image.
+    "pobierz obrazek z repozytorium
+    "https://blogs.sap.com/2013/06/11/image-in-mail-body-in-abap/
+    data(filename) = 'zabka_logo.gif'.
+
+    append '<!DOCTYPE html>' to r_result.
+    append '<html>' to r_result.
+    append '<head>' to r_result.
+    append '    <meta charset="UTF-8">' to r_result.
+    append '</head>' to r_result.
+    append '<style>' to r_result.
+    append '    .data { white-space: pre;' to r_result.
+    append '            font-family: Arial;' to r_result.
+    append '            font-size: 13px; ' to r_result.
+    append '    }' to r_result.
+    append '    .footer { ' to r_result.
+    append '        font-family: Arial;' to r_result.
+    append '        font-size: 11px;' to r_result.
+    append '    }' to r_result.
+    append '    .line_footer {' to r_result.
+    append '        width:"25%";' to r_result.
+    append '    }' to r_result.
+    append '</style>' to r_result.
+    append '<body>' to r_result.
+    append '<div class="data">' to r_result.
+    append '        Dzień dobry, ' to r_result.
+    append '        Proszę o informację w temacie niedopłaty na Z0002, u Franczyzobiorcy TAURON TEST, asd asd4 01-716 asdasd. Franczyzobiorca prowadzi 1 sklepów.' to r_result.
+    append '        Analiza płatności w dniu 16/1/2018 wykazuje niedopłatę w kwocie 3000.00 PLN. ' to r_result.
+    append '        Niedopłata w trakcie ostatnich pięciu dni urosła 2 razy. W ostatnich 30 dniach, niedopłata występowała 0 razy. ' to r_result.
+    append '        Proszę o bezzwłoczne zweryfikowanie płatności i zobowiązanie Franczyzobiorcy do uregulowania powstałej różnicy' to r_result.
+    append 'oraz o przesłanie dowodów wpłat zaległej i bieżącej do godziny 13:00.' to r_result.
+    append '</div>' to r_result.
+    append '<div class="footer">' to r_result.
+    append '    <br>' to r_result.
+    append '    <br>' to r_result.
+    append '    <!-- takie mają maile w żabce :) -->' to r_result.
+    append '    <strike>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;' to r_result.
+    append '        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strike>' to r_result.
+    append '    <br>' to r_result.
+    append '    Wiadomość wygenerowana automatycznie' to r_result.
+    append '    <br>' to r_result.
+    append '    <div>' to r_result.
+    append '        <!-- tu będzie logo żabki -->' to r_result.
+        "https://blogs.sap.com/2013/06/11/image-in-mail-body-in-abap/
+    append '<br><img alt="[image]" src="cid:zabka_logo.gif" /><br>' to r_result.
+    "https://blogs.sap.com/2013/06/11/image-in-mail-body-in-abap/
+    append '    </div>' to r_result.
+    append '</div>' to r_result.
+    append '' to r_result.
+    append '' to r_result.
+    append '</body>' to r_result.
+    append '' to r_result.
+    append '</html>' to r_result.
+
+
+  endmethod.
+
+
+  method me_generate_image_attachement.
+    DATA(logo_url) = '/SAP/PUBLIC/LOGO_ZABKA_TRANSPARENT'.
+    data(mime_api) = cl_mime_repository_api=>if_mr_api~get_api( ).
+    mime_api->get( exporting i_url = logo_url
+                    importing e_is_folder = data(is_folder)
+                                e_content = data(content_xstring)
+                                e_loio = data(lolo) ).
+    attachement_size = xstrlen( content_xstring ).
+    data(content_solix) = cl_bcs_convert=>xstring_to_solix( content_xstring ).
+    r_result = content_solix.
+
+  endmethod.
+
+endclass.
