@@ -133,6 +133,10 @@ class zsd_salesdocument_create_wrapp implementation.
 
   method call_bapi.
     set_default_values( ).
+    sort bapi_data-tables-sales_items_in by itm_number.
+    sort bapi_data-tables-sales_items_inx by itm_number.
+    sort bapi_data-tables-sales_schedules_in by itm_number.
+    sort bapi_data-tables-sales_conditions_inx by itm_number.
     call function 'SD_SALESDOCUMENT_CREATE'
       exporting
         salesdocument           = bapi_data-import-salesdocument    " Sales and Distribution Document Number
