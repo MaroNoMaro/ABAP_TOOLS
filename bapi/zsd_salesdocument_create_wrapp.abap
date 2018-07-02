@@ -133,6 +133,8 @@ class zsd_salesdocument_create_wrapp implementation.
 
   method call_bapi.
     set_default_values( ).
+    "bez sortowania nie zadziała
+    "dorobić metodę na sortowanie
     sort bapi_data-tables-sales_items_in by itm_number.
     sort bapi_data-tables-sales_items_inx by itm_number.
     sort bapi_data-tables-sales_schedules_in by itm_number.
